@@ -1,0 +1,37 @@
+# Simple RAG Demo Configuration
+demo:
+  name: "Simple RAG Demo"
+  version: "1.0.0"
+  description: "Локальная демонстрация RAG системы"
+
+# Data configuration
+data:
+  transcript_file: "data/audio/transcript.txt"
+  backup_transcript: "../../data/audio/В месяц ты зарабатываешь больше 1млн рублей? Звезда "Реутов ТВ" у Дудя.real_transcript.txt"
+  audio_file: "data/audio/audio.mp3"
+
+# Processing settings
+text_processing:
+  chunk_size: 250
+  chunk_overlap: 50
+  normalize_text: true
+  language: "ru"
+
+# Logging configuration  
+logging:
+  level: "DEBUG"
+  console_level: "INFO"
+  log_dir: "../../logs"
+  log_file_prefix: "simple_rag_demo"
+  format: "{time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | {name}:{function}:{line} | {message}"
+
+# Search configuration
+search:
+  max_results: 3
+  min_word_overlap: 1
+  
+# Demo metadata
+metadata:
+  source: "YouTube Shorts"
+  title: "В месяц ты зарабатываешь больше 1млн рублей? Звезда "Реутов ТВ" у Дудя"
+  language: "ru"
