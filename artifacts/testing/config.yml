@@ -7,7 +7,7 @@ demo:
 # Data configuration
 data:
   transcript_file: "data/audio/transcript.txt"
-  backup_transcript: "../../data/audio/В месяц ты зарабатываешь больше 1млн рублей? Звезда "Реутов ТВ" у Дудя.real_transcript.txt"
+  backup_transcript: "../../data/audio/В месяц ты зарабатываешь больше 1млн рублей？ Звезда ＂Реутов ТВ＂ у Дудя.real_transcript.txt"
   audio_file: "data/audio/audio.mp3"
 
 # Processing settings
@@ -29,9 +29,19 @@ logging:
 search:
   max_results: 3
   min_word_overlap: 1
+
+# Vector store settings
+chroma_db:
+  path: "data/chroma_db"
+  collection_name: "rag_demo_collection"
+  
+# Embedding settings
+embeddings:
+  model: "intfloat/multilingual-e5-large-instruct"
+  normalize: true
   
 # Demo metadata
 metadata:
   source: "YouTube Shorts"
-  title: "В месяц ты зарабатываешь больше 1млн рублей? Звезда "Реутов ТВ" у Дудя"
+  title: "В месяц ты зарабатываешь больше 1млн рублей？ Звезда ＂Реутов ТВ＂ у Дудя"
   language: "ru"
