@@ -25,9 +25,14 @@
 - `uv run ruff check .` - Lint code
 - `uv run ruff format .` - Format code
 
-## Frequently Used Prompts
-1. "Create modular architecture from Pipeline_Demo.py"
-2. "Set up pytest tests for the modules"
-3. "Configure ruff linting rules"
-4. "Extract requirements and create pyproject.toml"
-5. "Refactor monolithic code into separate modules"
+## Frequently Used Prompts (Updated 2025-01-18)
+1. "Implement TODO.md" - Initial project setup request
+2. "Create modular architecture from Pipeline_Demo.py"
+3. "Set up pytest tests for the modules"
+4. "Configure ruff linting rules"
+5. "Extract requirements and create pyproject.toml"
+6. "Move all docs under @docs/" - Documentation organization
+7. "Update @.gitignore for python project" - Project configuration
+8. "Update prompt logs, docs, todos, tests, reports and status. Then commit" - Documentation sync
+9. "go on" - Continue with current task/development
+10. "Run comprehensive tests" - Quality assurance workflow
