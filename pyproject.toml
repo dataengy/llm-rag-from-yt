@@ -5,28 +5,18 @@ description = "LLM RAG system for YouTube audio content processing"
 authors = [
     {name = "DataEngy", email = "noreply@dataengy.com"}
 ]
-readme = "docs/README.md"
+# readme = "docs/README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "faster-whisper",
-    "ctranslate2", 
-    "torch",
-    "torchvision",
-    "torchaudio",
-    "sentence-transformers",
-    "chromadb",
+    "openai>=1.0.0",
     "python-dotenv",
     "pyyaml",
-    "openai",
-    "librosa",
-    "langchain",
-    "gradio",
     "yt-dlp",
     "numpy",
     "fastapi",
     "uvicorn",
     "loguru",
-    "fastcore",
+    "chromadb",
 ]
 
 [project.optional-dependencies]
@@ -36,17 +26,26 @@ dev = [
     "ruff",
     "pre-commit",
     "mypy",
-    "black",
-    "isort",
+]
+ml = [
+    "faster-whisper",
+    "sentence-transformers",
+    "torch",
+    "torchvision", 
+    "torchaudio",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.hatch.build.targets.wheel]
+packages = ["src/llm_rag_yt"]
+
 [tool.ruff]
 target-version = "py39"
-line-length = 88
+
+[tool.ruff.lint]
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -57,14 +56,17 @@ select = [
     "UP", # pyupgrade
 ]
 ignore = [
-    "E501",  # line too long, handled by black
+    "E501",  # line too long
     "B008",  # do not perform function calls in argument defaults
     "C901",  # too complex
 ]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "tests/*" = ["E501"]
+"Pipeline_Demo.py" = ["ALL"]  # Exclude notebook conversion
+
+[tool.ruff.format]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
