@@ -192,6 +192,12 @@ wheels = [
 ]
 
 [[package]]
+name = "bash"
+version = "0.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/42/30/4870d449947581ff48f213c206d103e9458b0070dbc436c50b1b95007043/bash-0.6.tar.gz", hash = "sha256:2f79cb477d2763e6a24ca89314daef03b4cd899e02acec2635c95ea942736c68", size = 2838, upload-time = "2016-05-30T19:56:39.711Z" }
+
+[[package]]
 name = "bcrypt"
 version = "4.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1612,6 +1618,7 @@ name = "llm-rag-from-yt"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "bash" },
     { name = "chromadb" },
     { name = "fastapi" },
     { name = "gradio", version = "4.44.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.10'" },
@@ -1649,6 +1656,7 @@ ml = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bash" },
     { name = "chromadb" },
     { name = "fastapi" },
     { name = "faster-whisper", marker = "extra == 'ml'" },
