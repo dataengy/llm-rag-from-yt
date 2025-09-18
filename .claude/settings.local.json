@@ -9,7 +9,16 @@
       "Bash(uv run ruff format:*)",
       "Bash(uv sync:*)",
       "Bash(uv run pytest:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(uv run llm-rag-yt process:*)",
+      "Bash(uv run:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(rm:*)",
+      "Bash(pip install:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(../../.venv/bin/python:*)",
+      "Bash(/Users/nk.myg/github/@dataengy/llm-rag-from-yt/.venv/bin/python simple_rag_demo.py)"
     ],
     "deny": []
   }

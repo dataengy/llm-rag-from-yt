@@ -22,17 +22,27 @@ class AudioTranscriber:
 
     @property
     def model(self):
-        """Lazy load whisper model."""
+        """Lazy load whisper model with proper dependency handling."""
         if self._model is None:
             try:
                 from faster_whisper import WhisperModel
 
+                logger.info(f"Loading Whisper model: {self.model_name}")
                 self._model = WhisperModel(
                     self.model_name, device=self.device, compute_type=self.compute_type
                 )
                 logger.info(f"Loaded Whisper model: {self.model_name}")
             except ImportError as e:
-                raise RuntimeError("Install faster-whisper for real ASR") from e
+                error_msg = (
+                    "faster-whisper not installed. Install with: "
+                    "pip install faster-whisper==1.0.3"
+                )
+                logger.error(error_msg)
+                raise RuntimeError(error_msg) from e
+            except Exception as e:
+                error_msg = f"Failed to load Whisper model '{self.model_name}': {e}"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg) from e
         return self._model
 
     def transcribe_file(
@@ -40,7 +50,7 @@ class AudioTranscriber:
         audio_path: Path,
         language: str = "ru",
         beam_size: int = 5,
-        use_vad: bool = False,
+        use_vad: bool = True,
     ) -> dict[str, any]:
         """Transcribe a single audio file.
 
@@ -54,9 +64,11 @@ class AudioTranscriber:
             Dict with transcription results
         """
         try:
+            logger.info(f"Transcribing {audio_path.name} (language: {language})")
+            
             segments, info = self.model.transcribe(
                 str(audio_path),
-                language=language,
+                language=None if language == "auto" else language,
                 beam_size=beam_size,
                 vad_filter=use_vad,
             )
@@ -65,24 +77,30 @@ class AudioTranscriber:
             full_text_parts = []
 
             for segment in segments:
-                seg_data = {
-                    "start": float(segment.start or 0.0),
-                    "end": float(segment.end or 0.0),
-                    "speaker": "spk1",
-                    "text": (segment.text or "").strip(),
-                }
-                transcription_segments.append(seg_data)
-                full_text_parts.append(seg_data["text"])
+                text = (segment.text or "").strip()
+                if text:  # Only include non-empty segments
+                    seg_data = {
+                        "start": float(segment.start or 0.0),
+                        "end": float(segment.end or 0.0),
+                        "speaker": "spk1",
+                        "text": text,
+                    }
+                    transcription_segments.append(seg_data)
+                    full_text_parts.append(text)
 
             result = {
                 "file_id": audio_path.stem,
                 "language": getattr(info, "language", language),
+                "duration": getattr(info, "duration", 0.0),
                 "segments": transcription_segments,
                 "full_text": " ".join(full_text_parts).strip(),
+                "model": self.model_name,
+                "segment_count": len(transcription_segments),
             }
 
             logger.info(
-                f"Transcribed {audio_path.name}: {len(transcription_segments)} segments"
+                f"Transcribed {audio_path.name}: {len(transcription_segments)} segments, "
+                f"language: {result['language']}, duration: {result['duration']:.2f}s"
             )
             return result
 

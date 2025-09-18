@@ -21,6 +21,7 @@ dependencies = [
     "pydantic",
     "typer",
     "rich",
+    "bash",
 ]
 
 [project.optional-dependencies]
