@@ -10,6 +10,8 @@ from loguru import logger
 from .. import __version__
 from ..pipeline import RAGPipeline
 from .models import (
+    FeedbackRequest,
+    FeedbackResponse,
     HealthResponse,
     ProcessUrlRequest,
     ProcessUrlResponse,
@@ -130,6 +132,52 @@ async def query_rag(request: QueryRequest):
 
     except Exception as e:
         logger.error(f"Failed to process query: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/feedback", response_model=FeedbackResponse)
+async def submit_feedback(request: FeedbackRequest):
+    """Submit user feedback."""
+    if pipeline is None:
+        raise HTTPException(status_code=500, detail="Pipeline not initialized")
+
+    try:
+        from ..monitoring.feedback_collector import FeedbackCollector
+
+        feedback_db = pipeline.config.artifacts_dir / "feedback.db"
+        collector = FeedbackCollector(feedback_db)
+
+        feedback_id = collector.collect_feedback(
+            query=request.query,
+            answer=request.answer,
+            rating=request.rating,
+            feedback_text=request.feedback_text,
+            session_id=request.session_id,
+        )
+
+        return FeedbackResponse(feedback_id=feedback_id, status="success")
+
+    except Exception as e:
+        logger.error(f"Failed to submit feedback: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/feedback/stats")
+async def get_feedback_stats():
+    """Get feedback statistics."""
+    if pipeline is None:
+        raise HTTPException(status_code=500, detail="Pipeline not initialized")
+
+    try:
+        from ..monitoring.feedback_collector import FeedbackCollector
+
+        feedback_db = pipeline.config.artifacts_dir / "feedback.db"
+        collector = FeedbackCollector(feedback_db)
+
+        return collector.get_feedback_stats()
+
+    except Exception as e:
+        logger.error(f"Failed to get feedback stats: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

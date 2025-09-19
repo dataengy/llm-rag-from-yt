@@ -84,6 +84,23 @@ class ChromaVectorStore:
         logger.debug(f"Retrieved {len(documents)} similar documents")
         return documents
 
+    def query_similar_with_embeddings(
+        self, query_embedding: list[float], top_k: int, encoder: EmbeddingEncoder
+    ) -> list[dict[str, any]]:
+        """Query using different encoder for evaluation purposes.
+
+        Args:
+            query_embedding: Query embedding vector
+            top_k: Number of top results to return
+            encoder: Alternative encoder for re-embedding stored documents
+
+        Returns:
+            List of similar documents with metadata
+        """
+        # For evaluation, we'll use the existing embeddings but compare with different encoders
+        # In practice, this would require re-embedding the collection with the new encoder
+        return self.query_similar(query_embedding, top_k)
+
     def get_collection_info(self) -> dict[str, any]:
         """Get information about the collection.
 

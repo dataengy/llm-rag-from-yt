@@ -6,35 +6,25 @@ import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, install_required_packages,
+    validate_audio_file, save_transcription_result, print_session_header
+)
+
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('real_transcribe')
 
 def install_requirements():
     """Install required packages for transcription."""
-    try:
-        import faster_whisper
-        import av
-        print("✅ Required packages already installed")
-        return True
-    except ImportError:
-        print("📦 Installing required packages...")
-        # Install specific versions that work with Python 3.13
-        commands = [
-            "pip install av",
-            "pip install faster-whisper==1.0.3",  # Specific version that works
-        ]
-        
-        for cmd in commands:
-            print(f"Running: {cmd}")
-            result = os.system(cmd)
-            if result != 0:
-                print(f"❌ Failed to install: {cmd}")
-                return False
-        
-        print("✅ All packages installed successfully")
-        return True
+    packages = [
+        ("faster_whisper", "faster-whisper==1.0.3"),
+        ("av", "av")
+    ]
+    return install_required_packages(packages)
 
-def validate_audio_file(file_path: Path) -> bool:
+def validate_audio_file_advanced(file_path: Path) -> bool:
     """Validate that file is a proper audio file using av library."""
     try:
         import av
@@ -118,23 +108,9 @@ def transcribe_audio_file(audio_path: Path, language: str = "auto", model_size: 
         traceback.print_exc()
         return None
 
-def save_transcription(result: Dict[str, Any], output_path: Path) -> bool:
-    """Save transcription to file."""
-    try:
-        with output_path.open("w", encoding="utf-8") as f:
-            for line in result['transcription_lines']:
-                f.write(line + "\n")
-        
-        print(f"💾 Saved transcription to: {output_path}")
-        return True
-    except Exception as e:
-        print(f"❌ Failed to save transcription: {e}")
-        return False
-
 def main():
     """Main transcription function."""
-    print("🎯 Real Transcription Script for YouTube Audio")
-    print("=" * 50)
+    print_session_header("Real Transcription Script for YouTube Audio")
     
     # Install requirements first
     if not install_requirements():
@@ -151,7 +127,7 @@ def main():
     print(f"🎵 Processing audio file: {audio_file.name}")
     
     # Validate audio file first
-    if not validate_audio_file(audio_file):
+    if not validate_audio_file_advanced(audio_file):
         print("❌ Audio file validation failed")
         return 1
     
@@ -164,11 +140,12 @@ def main():
     
     # Save transcription
     output_path = audio_file.with_suffix('.real_transcript.txt')
-    if not save_transcription(result, output_path):
+    if not save_transcription_result(result, output_path):
         return 1
     
     # Print summary
-    print("\n" + "=" * 50)
+    print("
+" + "=" * 50)
     print("📊 TRANSCRIPTION SUMMARY")
     print("=" * 50)
     print(f"Input file: {result['input_file']}")
@@ -181,7 +158,8 @@ def main():
     print(f"Words (approx): {len(result['full_text'].split())}")
     
     # Show first few lines of transcription
-    print("\n📝 TRANSCRIPTION PREVIEW:")
+    print("
+📝 TRANSCRIPTION PREVIEW:")
     print("-" * 30)
     lines = result['transcription_lines'][4:]  # Skip metadata lines
     for i, line in enumerate(lines[:5]):  # Show first 5 segments
@@ -189,7 +167,8 @@ def main():
     if len(lines) > 5:
         print(f"... and {len(lines) - 5} more segments")
     
-    print("\n✅ Real transcription completed successfully!")
+    print("
+✅ Real transcription completed successfully!")
     return 0
 
 if __name__ == "__main__":

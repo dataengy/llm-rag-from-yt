@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Optional
 
 import yt_dlp
-from loguru import logger
+
+from .._common.logging import log
 
 
 class YouTubeDownloader:
@@ -42,7 +43,9 @@ class YouTubeDownloader:
 
                 downloaded_file = self.output_dir / f"{title}.mp3"
                 if downloaded_file.exists():
-                    logger.info(f"Downloaded: {title} ({duration}s)")
+                    log.bind(component="downloader", url=url, duration=duration).info(
+                        f"✅ Downloaded: {title} ({duration}s)"
+                    )
                     return {
                         "title": title,
                         "file_path": str(downloaded_file),
@@ -51,7 +54,9 @@ class YouTubeDownloader:
                     }
 
         except Exception as e:
-            logger.error(f"Failed to download {url}: {e}")
+            log.bind(component="downloader", url=url).error(
+                f"❌ Failed to download {url}: {e}"
+            )
             return None
 
     def download_multiple(self, urls: list[str]) -> dict[str, dict[str, str]]:

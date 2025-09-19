@@ -1,0 +1,41 @@
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alertmanager@llm-rag-system.local'
+
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'telegram-alerts'
+
+receivers:
+  - name: 'telegram-alerts'
+    telegram_configs:
+      - bot_token: '${BOT_TOKEN}'
+        chat_id: '${TELEGRAM_ADMIN_CHAT_ID}'
+        api_url: 'https://api.telegram.org'
+        message: |
+          🚨 {{ .GroupLabels.alertname }} Alert
+
+          **Severity:** {{ .CommonLabels.severity }}
+          **Instance:** {{ .CommonLabels.instance }}
+          
+          **Description:**
+          {{ range .Alerts }}
+          • {{ .Annotations.description }}
+          {{ end }}
+          
+          **Time:** {{ .Alerts | first | .StartsAt }}
+
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://api:8000/webhooks/alerts'
+        send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']

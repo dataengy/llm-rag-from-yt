@@ -6,24 +6,15 @@ import sys
 from pathlib import Path
 from typing import Optional, Dict, Any
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, check_and_install_whisper,
+    validate_audio_file, save_transcription_result, print_session_header
+)
 
-def check_and_install_whisper():
-    """Check if faster-whisper is available and install if needed."""
-    try:
-        import faster_whisper
-        return True
-    except ImportError:
-        print("Installing faster-whisper...")
-        result = os.system("pip install faster-whisper==1.0.3")
-        if result == 0:
-            print("✅ faster-whisper installed successfully")
-            import faster_whisper  # Test import
-            return True
-        else:
-            print("❌ Failed to install faster-whisper")
-            return False
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('transcriber_fix')
 
 def create_fixed_transcriber():
     """Create a fixed version of our AudioTranscriber that handles dependencies properly."""
@@ -59,31 +50,11 @@ def create_fixed_transcriber():
                     raise RuntimeError(f"Cannot load Whisper model: {e}") from e
             return self._model
         
-        def validate_audio_file(self, file_path: Path) -> bool:
-            """Validate audio file using basic checks."""
-            if not file_path.exists():
-                print(f"❌ File does not exist: {file_path}")
-                return False
-            
-            # Check file size (basic validation)
-            if file_path.stat().st_size == 0:
-                print(f"❌ Empty file: {file_path}")
-                return False
-            
-            # Check file extension
-            valid_extensions = {'.mp3', '.wav', '.m4a', '.mp4'}
-            if file_path.suffix.lower() not in valid_extensions:
-                print(f"❌ Unsupported file type: {file_path.suffix}")
-                return False
-            
-            print(f"✅ Audio file validation passed: {file_path.name}")
-            return True
-        
         def transcribe_file(self, audio_path: Path, language: str = "ru", beam_size: int = 5, use_vad: bool = True) -> Optional[Dict[str, Any]]:
             """Transcribe a single audio file with proper error handling."""
             
             # Validate input
-            if not self.validate_audio_file(audio_path):
+            if not validate_audio_file(audio_path):
                 return None
             
             try:
@@ -135,29 +106,13 @@ def create_fixed_transcriber():
         
         def save_transcription_file(self, result: Dict[str, Any], output_path: Path) -> bool:
             """Save transcription in readable format."""
-            try:
-                with output_path.open("w", encoding="utf-8") as f:
-                    f.write(f"# Transcription of {result['file_id']}\n")
-                    f.write(f"# Language: {result['language']}, Duration: {result['duration']:.2f}s\n")
-                    f.write(f"# Model: Whisper {result['model']}, Segments: {result['segment_count']}\n")
-                    f.write(f"# Full text: {result['full_text']}\n")
-                    f.write("\n")
-                    
-                    for seg in result['segments']:
-                        f.write(f"[{seg['start']:.2f}-{seg['end']:.2f}] {seg['text']}\n")
-                
-                print(f"💾 Saved transcription to: {output_path}")
-                return True
-            except Exception as e:
-                print(f"❌ Failed to save transcription: {e}")
-                return False
+            return save_transcription_result(result, output_path)
     
     return FixedAudioTranscriber
 
 def test_fixed_transcriber():
     """Test the fixed transcriber with our audio file."""
-    print("🧪 Testing Fixed Audio Transcriber")
-    print("=" * 50)
+    print_session_header("Testing Fixed Audio Transcriber")
     
     # Create fixed transcriber
     TranscriberClass = create_fixed_transcriber()
@@ -187,7 +142,8 @@ def test_fixed_transcriber():
         return 1
     
     # Show summary
-    print("\n📊 TRANSCRIPTION TEST RESULTS")
+    print("
+📊 TRANSCRIPTION TEST RESULTS")
     print("=" * 50)
     print(f"✅ File ID: {result['file_id']}")
     print(f"✅ Language: {result['language']}")
@@ -197,7 +153,8 @@ def test_fixed_transcriber():
     print(f"✅ Model: {result['model']}")
     print(f"✅ Output: {output_path}")
     
-    print(f"\n📝 SAMPLE TEXT:")
+    print(f"
+📝 SAMPLE TEXT:")
     print(f"{result['full_text'][:200]}...")
     
     return 0

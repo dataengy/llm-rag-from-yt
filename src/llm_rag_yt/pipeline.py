@@ -3,11 +3,10 @@
 import json
 from typing import Optional
 
-from loguru import logger
-
+from ._common.config.settings import Config, get_config
+from ._common.logging import log
 from .audio.downloader import YouTubeDownloader
 from .audio.transcriber import AudioTranscriber
-from .config.settings import Config, get_config
 from .embeddings.encoder import EmbeddingEncoder
 from .rag.query_engine import RAGQueryEngine
 from .text.processor import TextProcessor
@@ -40,7 +39,7 @@ class RAGPipeline:
             temperature=self.config.temperature,
         )
 
-        logger.info("Initialized RAG pipeline")
+        log.bind(component="pipeline").info("ℹ️ Initialized RAG pipeline")
 
     def download_and_process(self, urls: list[str]) -> dict[str, dict]:
         """Download YouTube videos and process through full pipeline.
@@ -51,7 +50,9 @@ class RAGPipeline:
         Returns:
             Processing results
         """
-        logger.info(f"Starting pipeline for {len(urls)} URLs")
+        log.bind(component="pipeline", urls_count=len(urls)).info(
+            f"🚀 Starting pipeline for {len(urls)} URLs"
+        )
 
         download_results = self.downloader.download_multiple(urls)
         if not download_results:

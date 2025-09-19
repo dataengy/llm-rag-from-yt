@@ -4,24 +4,24 @@
 import sys
 from pathlib import Path
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, check_and_install_whisper,
+    validate_audio_file, save_transcription_result, print_session_header
+)
+
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('test_project_transcriber')
 
 def test_project_transcriber():
     """Test our fixed project transcriber."""
-    print("🧪 Testing Project AudioTranscriber")
-    print("=" * 50)
+    print_session_header("Testing Project AudioTranscriber")
     
     # Install faster-whisper if needed
-    try:
-        import faster_whisper
-    except ImportError:
-        import os
-        print("📦 Installing faster-whisper...")
-        result = os.system("pip install faster-whisper==1.0.3")
-        if result != 0:
-            print("❌ Failed to install faster-whisper")
-            return 1
+    if not check_and_install_whisper():
+        print("❌ Failed to install faster-whisper")
+        return 1
     
     try:
         from llm_rag_yt.audio.transcriber import AudioTranscriber
@@ -61,7 +61,8 @@ def test_project_transcriber():
         print("✅ Transcription completed successfully!")
         
         # Show results
-        print(f"\n📊 RESULTS:")
+        print(f"
+📊 RESULTS:")
         print(f"File ID: {result['file_id']}")
         print(f"Language: {result['language']}")
         print(f"Duration: {result['duration']:.2f}s")
@@ -69,22 +70,15 @@ def test_project_transcriber():
         print(f"Model: {result['model']}")
         print(f"Text length: {len(result['full_text'])} characters")
         
-        print(f"\n📝 SAMPLE TEXT (first 150 chars):")
+        print(f"
+📝 SAMPLE TEXT (first 150 chars):")
         print(f"'{result['full_text'][:150]}...'")
         
         # Save result for verification
         output_file = Path("artifacts/testing/project_transcription_result.txt")
-        with output_file.open("w", encoding="utf-8") as f:
-            f.write(f"# Project Transcriber Test Result\n")
-            f.write(f"# File: {result['file_id']}\n")
-            f.write(f"# Language: {result['language']}, Duration: {result['duration']:.2f}s\n") 
-            f.write(f"# Model: {result['model']}, Segments: {result['segment_count']}\n")
-            f.write(f"\nFull text:\n{result['full_text']}\n\n")
-            f.write("Segments:\n")
-            for seg in result['segments']:
-                f.write(f"[{seg['start']:.2f}-{seg['end']:.2f}] {seg['text']}\n")
+        if not save_transcription_result(result, output_file):
+            return 1
         
-        print(f"💾 Saved detailed results to: {output_file}")
         return 0
         
     except Exception as e:

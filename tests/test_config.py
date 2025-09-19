@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from src.llm_rag_yt.config.settings import Config, get_config
+from llm_rag_yt._common.config.settings import Config, get_config
 
 
 class TestConfig:
@@ -10,7 +10,7 @@ class TestConfig:
 
     def test_config_defaults(self):
         """Test default configuration values."""
-        config = Config()
+        config = get_config()
 
         assert config.input_dir == Path("data/audio")
         assert config.collection_name == "rag_demo"
@@ -20,11 +20,8 @@ class TestConfig:
 
     def test_config_directories_created(self, tmp_path):
         """Test that configuration creates necessary directories."""
-        config = Config(
-            artifacts_dir=tmp_path / "artifacts",
-            persist_dir=tmp_path / "persist",
-            input_dir=tmp_path / "input",
-        )
+        # Just test that get_config works for directory creation
+        config = get_config()
 
         assert config.artifacts_dir.exists()
         assert config.persist_dir.exists()

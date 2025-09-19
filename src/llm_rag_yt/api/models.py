@@ -48,6 +48,23 @@ class HealthResponse(BaseModel):
     collection_info: dict = Field(..., description="Vector store information")
 
 
+class FeedbackRequest(BaseModel):
+    """Request model for user feedback."""
+
+    query: str = Field(..., description="Original query")
+    answer: str = Field(..., description="System answer")
+    rating: int = Field(..., ge=1, le=5, description="User rating (1-5)")
+    feedback_text: Optional[str] = Field(None, description="Optional feedback text")
+    session_id: Optional[str] = Field(None, description="Session identifier")
+
+
+class FeedbackResponse(BaseModel):
+    """Response model for feedback submission."""
+
+    feedback_id: str = Field(..., description="Feedback ID")
+    status: str = Field(..., description="Submission status")
+
+
 class ErrorResponse(BaseModel):
     """Response model for errors."""
 

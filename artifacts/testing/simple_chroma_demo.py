@@ -11,86 +11,15 @@ from datetime import datetime
 import chromadb
 from loguru import logger as log
 
-# Setup detailed logging
-log_dir = Path(__file__).parent.parent.parent / "logs"
-log_dir.mkdir(exist_ok=True)
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, load_config, load_transcription_text,
+    create_simple_chunks, print_session_header, print_section_header
+)
 
-log_file = log_dir / f"simple_chroma_demo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-
-# Configure loguru for detailed logging
-log.remove()
-log.add(sys.stderr, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
-log.add(log_file, level="DEBUG", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | {name}:{function}:{line} | {message}")
-
-log.info("=== SIMPLE CHROMA DEMO SESSION STARTED ===")
-log.info(f"Log file: {log_file}")
-
-def load_config() -> dict:
-    """Load configuration from config.yml."""
-    config_file = Path("config.yml")
-    if not config_file.exists():
-        log.error(f"Config file not found: {config_file}")
-        raise FileNotFoundError(f"Config file not found: {config_file}")
-    
-    with open(config_file, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-    
-    log.info("Configuration loaded successfully")
-    return config
-
-def load_transcription_text(config: dict) -> str:
-    """Load the transcription text from configured file."""
-    log.debug("Loading transcription text")
-    
-    transcript_file = Path(config['data']['transcript_file'])
-    log.info(f"Using transcript file: {transcript_file}")
-    
-    if not transcript_file.exists():
-        log.error(f"Transcript file not found: {transcript_file}")
-        raise FileNotFoundError(f"❌ Transcript file not found: {transcript_file}")
-
-    with transcript_file.open("r", encoding="utf-8") as f:
-        content = f.read()
-    
-    # Extract text from timestamped segments
-    lines = content.split('\n')
-    text_segments = []
-    
-    for line in lines:
-        line = line.strip()
-        if line.startswith("[") and "]" in line:
-            text_part = line.split("]", 1)[1].strip()
-            if text_part:
-                text_segments.append(text_part)
-    
-    full_text = " ".join(text_segments)
-    log.info(f"Loaded transcription: {len(text_segments)} segments, {len(full_text)} characters")
-    print(f"✅ Loaded transcription: {len(text_segments)} segments, {len(full_text)} characters")
-    return full_text
-
-def create_simple_chunks(text: str, chunk_size: int = 50) -> List[Dict[str, Any]]:
-    """Create simple word-based chunks."""
-    log.debug(f"Creating chunks with size {chunk_size}")
-    
-    words = text.split()
-    chunks = []
-    
-    for i in range(0, len(words), chunk_size):
-        chunk_text = " ".join(words[i:i + chunk_size])
-        chunk = {
-            "id": f"chunk_{i//chunk_size}",
-            "text": chunk_text,
-            "metadata": {
-                "chunk_index": i//chunk_size,
-                "word_start": i,
-                "word_end": min(i + chunk_size, len(words)),
-                "created_at": datetime.now().isoformat()
-            }
-        }
-        chunks.append(chunk)
-    
-    log.info(f"Created {len(chunks)} chunks")
-    return chunks
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('simple_chroma_demo')
 
 def create_chroma_collection(config: dict, chunks: List[Dict[str, Any]]):
     """Create ChromaDB collection with basic embeddings."""
@@ -201,13 +130,13 @@ def generate_answer(question: str, search_results: List[Dict[str, Any]]) -> str:
 def test_chroma_demo():
     """Test ChromaDB functionality."""
     
-    print("🚀 SIMPLE CHROMADB DEMO")
-    print("=" * 40)
+    print_session_header("SIMPLE CHROMADB DEMO")
     
     try:
         # Load config and data
         config = load_config()
-        transcript_text = load_transcription_text(config)
+        transcript_file = Path(config['data']['transcript_file'])
+        transcript_text = load_transcription_text(transcript_file)
         
         # Create chunks
         chunk_size = config['text_processing']['chunk_size'] // 5  # Smaller chunks for better search
@@ -223,11 +152,11 @@ def test_chroma_demo():
             "Что он говорит о работе?"
         ]
         
-        print(f"\n🧪 TESTING SEMANTIC SEARCH:")
-        print("-" * 40)
+        print_section_header("TESTING SEMANTIC SEARCH")
         
         for i, question in enumerate(test_questions, 1):
-            print(f"\n{i}. Вопрос: {question}")
+            print(f"
+{i}. Вопрос: {question}")
             
             # Search
             results = search_chroma(question, chroma_info, top_k=2)
@@ -241,7 +170,8 @@ def test_chroma_demo():
                 similarity = (1 - best_distance) * 100
                 print(f"   🎯 Схожесть: {similarity:.1f}%")
         
-        print(f"\n✅ Demo completed!")
+        print(f"
+✅ Demo completed!")
         print(f"📄 Логи: {log_file}")
         print(f"🗄️ ChromaDB: {chroma_info['path']}")
         

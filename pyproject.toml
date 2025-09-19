@@ -3,16 +3,16 @@ name = "llm-rag-from-yt"
 version = "0.1.0"
 description = "LLM RAG system for YouTube audio content processing"
 authors = [
-    {name = "DataEngy", email = "noreply@dataengy.com"}
+    {name = "DataEngy", email = "data.engy@gmail.com"}
 ]
 # readme = "docs/README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.13"
 dependencies = [
     "openai>=1.0.0",
     "python-dotenv",
     "pyyaml",
     "yt-dlp",
-    "numpy",
+    "numpy<2",  # Pin to v1.x for torch compatibility
     "fastapi",
     "uvicorn",
     "loguru",
@@ -22,12 +22,19 @@ dependencies = [
     "typer",
     "rich",
     "bash",
+    "plotly",
+    "pandas",
+    "python-telegram-bot>=20.0",
+    "dagster>=1.5.0",
+    "dagster-webserver>=1.5.0",
+    "psutil",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest",
     "pytest-cov",
+    "pytest-asyncio",
     "ruff",
     "pre-commit",
     "mypy",
@@ -36,9 +43,8 @@ dev = [
 ml = [
     "faster-whisper",
     "sentence-transformers",
-    "torch",
-    "torchvision", 
-    "torchaudio",
+    "scikit-learn",
+    "torch==2.2.2",  # Use compatible version for x86_64 macOS
 ]
 
 [build-system]
@@ -82,6 +88,9 @@ minversion = "6.0"
 addopts = "-ra -q --strict-markers"
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "asyncio: marks tests as requiring asyncio",
+]
 
 [tool.coverage.run]
 source = ["src"]

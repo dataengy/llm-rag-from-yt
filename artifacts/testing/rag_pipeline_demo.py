@@ -6,35 +6,15 @@ import sys
 from pathlib import Path
 from typing import List, Dict, Any
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, install_required_packages,
+    print_session_header, print_section_header
+)
 
-def install_required_packages():
-    """Install packages needed for RAG demo."""
-    packages_to_check = [
-        ("openai", "openai"),
-        ("chromadb", "chromadb"), 
-        ("sentence_transformers", "sentence-transformers"),
-    ]
-    
-    missing_packages = []
-    for import_name, pip_name in packages_to_check:
-        try:
-            __import__(import_name)
-            print(f"✅ {import_name} available")
-        except ImportError:
-            missing_packages.append(pip_name)
-    
-    if missing_packages:
-        print(f"📦 Installing missing packages: {missing_packages}")
-        for package in missing_packages:
-            result = os.system(f"pip install {package}")
-            if result != 0:
-                print(f"❌ Failed to install {package}")
-                return False
-        print("✅ All packages installed")
-    
-    return True
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('rag_pipeline_demo')
 
 def load_transcription_data() -> List[Dict[str, Any]]:
     """Load transcription data from our test files."""
@@ -133,7 +113,7 @@ def load_transcription_data() -> List[Dict[str, Any]]:
 def setup_rag_components():
     """Set up RAG components: embeddings, vector store, LLM."""
     
-    print("🔧 Setting up RAG components...")
+    print("�� Setting up RAG components...")
     
     # Initialize embeddings
     try:
@@ -293,7 +273,9 @@ def query_rag(question: str, embedding_model, collection, openai_client, top_k: 
             }
             sources.append(source_info)
         
-        context = "\n\n".join(context_parts)
+        context = "
+
+".join(context_parts)
         
         # Generate answer using OpenAI
         system_prompt = """Ты помощник для ответов на вопросы на основе транскрипции видео с YouTube. 
@@ -343,7 +325,8 @@ def query_rag(question: str, embedding_model, collection, openai_client, top_k: 
 def interactive_qa_session(embedding_model, collection, openai_client):
     """Run interactive Q&A session."""
     
-    print("\n" + "="*60)
+    print("
+" + "="*60)
     print("🤖 ИНТЕРАКТИВНАЯ СЕССИЯ ВОПРОСОВ И ОТВЕТОВ")
     print("="*60)
     print("📹 Видео: 'В месяц ты зарабатываешь больше 1млн рублей？ Звезда ＂Реутов ТВ＂ у Дудя'")
@@ -353,7 +336,8 @@ def interactive_qa_session(embedding_model, collection, openai_client):
     
     while True:
         try:
-            question = input("\n🤔 Ваш вопрос: ").strip()
+            question = input("
+🤔 Ваш вопрос: ").strip()
             
             if question.lower() in ['quit', 'exit', 'выход', 'q']:
                 print("👋 До свидания!")
@@ -363,17 +347,20 @@ def interactive_qa_session(embedding_model, collection, openai_client):
                 print("⚠️ Пожалуйста, введите вопрос")
                 continue
             
-            print(f"\n🔍 Обрабатываю вопрос: '{question}'")
+            print(f"
+🔍 Обрабатываю вопрос: '{question}'")
             print("⏳ Поиск релевантной информации...")
             
             result = query_rag(question, embedding_model, collection, openai_client)
             
-            print(f"\n💬 ОТВЕТ:")
+            print(f"
+💬 ОТВЕТ:")
             print("-" * 40)
             print(result["answer"])
             
             if result["sources"]:
-                print(f"\n📚 ИСТОЧНИКИ ({len(result['sources'])} сегментов):")
+                print(f"
+📚 ИСТОЧНИКИ ({len(result['sources'])} сегментов):")
                 print("-" * 40)
                 for i, source in enumerate(result["sources"], 1):
                     start_time = source.get("start_time", 0)
@@ -381,18 +368,25 @@ def interactive_qa_session(embedding_model, collection, openai_client):
                     print(f"{i}. [{start_time:.1f}s-{end_time:.1f}s]: {source['text']}")
             
         except KeyboardInterrupt:
-            print("\n\n👋 Сессия прервана пользователем")
+            print("
+
+👋 Сессия прервана пользователем")
             break
         except Exception as e:
-            print(f"\n❌ Ошибка: {e}")
+            print(f"
+❌ Ошибка: {e}")
 
 def main():
     """Main RAG demo function."""
-    print("🚀 RAG PIPELINE DEMO - ЗАГРУЗКА ДАННЫХ И ИНТЕРАКТИВНЫЙ Q&A")
-    print("="*70)
+    print_session_header("RAG PIPELINE DEMO - ЗАГРУЗКА ДАННЫХ И ИНТЕРАКТИВНЫЙ Q&A")
     
     # Install required packages
-    if not install_required_packages():
+    packages = [
+        ("openai", "openai"),
+        ("chromadb", "chromadb"), 
+        ("sentence_transformers", "sentence-transformers"),
+    ]
+    if not install_required_packages(packages):
         return 1
     
     # Load transcription data
@@ -410,8 +404,7 @@ def main():
         return 1
     
     # Test the system with a sample query
-    print("\n🧪 ТЕСТОВЫЙ ЗАПРОС")
-    print("-" * 30)
+    print_section_header("ТЕСТОВЫЙ ЗАПРОС")
     test_question = "Сколько зарабатывает герой видео?"
     print(f"Вопрос: {test_question}")
     

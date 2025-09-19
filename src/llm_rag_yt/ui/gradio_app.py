@@ -67,7 +67,7 @@ class GradioRAGApp:
             status_msg = f"✅ Successfully processed!\n📥 Downloads: {len(downloads)}\n📝 Transcriptions: {transcriptions}\n📦 Chunks: {chunks}"
 
             detail_info = ""
-            for url_key, download_info in downloads.items():
+            for _url_key, download_info in downloads.items():
                 detail_info += f"Title: {download_info.get('title', 'Unknown')}\n"
                 detail_info += f"Duration: {download_info.get('duration', 0)}s\n"
                 detail_info += f"File: {download_info.get('file_path', 'N/A')}\n\n"

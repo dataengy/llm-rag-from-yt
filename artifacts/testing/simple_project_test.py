@@ -4,8 +4,15 @@
 import sys
 from pathlib import Path
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, check_and_install_whisper,
+    validate_audio_file, save_transcription_result, print_session_header
+)
+
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('simple_project_test')
 
 def test_transcriber_without_complex_deps():
     """Test transcriber by bypassing complex dependencies."""
@@ -93,7 +100,8 @@ def test_transcriber_without_complex_deps():
     try:
         result = transcriber.transcribe_file(audio_file, language="ru")
         
-        print("\n📊 TRANSCRIPTION RESULTS")
+        print("
+📊 TRANSCRIPTION RESULTS")
         print("=" * 50)
         print(f"File ID: {result['file_id']}")
         print(f"Language: {result['language']}")
@@ -103,22 +111,14 @@ def test_transcriber_without_complex_deps():
         print(f"Text length: {len(result['full_text'])} characters")
         
         # Show sample
-        print(f"\n📝 FULL TEXT:")
+        print(f"
+📝 FULL TEXT:")
         print(f"{result['full_text']}")
         
         # Save results
         output_file = Path("artifacts/testing/simple_transcription_result.txt") 
-        with output_file.open("w", encoding="utf-8") as f:
-            f.write(f"# Simple Transcriber Test Result\n")
-            f.write(f"# File: {result['file_id']}\n") 
-            f.write(f"# Language: {result['language']}, Duration: {result['duration']:.2f}s\n")
-            f.write(f"# Model: {result['model']}, Segments: {result['segment_count']}\n")
-            f.write(f"\nFull text:\n{result['full_text']}\n\n")
-            f.write("Timestamped segments:\n")
-            for seg in result['segments']:
-                f.write(f"[{seg['start']:.2f}-{seg['end']:.2f}] {seg['text']}\n")
-        
-        print(f"\n💾 Saved results to: {output_file}")
+        if not save_transcription_result(result, output_file):
+            return 1
         
         # Verify our result format matches project expectations
         expected_keys = {"file_id", "language", "duration", "segments", "full_text", "model", "segment_count"}

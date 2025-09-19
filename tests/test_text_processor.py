@@ -1,6 +1,6 @@
 """Tests for text processing module."""
 
-from src.llm_rag_yt.text.processor import TextProcessor
+from llm_rag_yt.text.processor import TextProcessor
 
 
 class TestTextProcessor:
