@@ -1,6 +1,21 @@
 # LLM RAG YouTube Audio Processing
 
-End-to-end RAG pipeline for processing YouTube audio content and answering questions.
+## Problem Statement
+
+YouTube contains vast amounts of valuable audio content (podcasts, interviews, lectures, discussions) that are difficult to search and query efficiently. Users face several challenges:
+
+1. **Content Discovery**: Finding specific information within hours of audio content is time-consuming
+2. **Knowledge Extraction**: No easy way to ask questions about what was discussed in a video
+3. **Multi-language Support**: Audio content in different languages lacks unified search capabilities
+4. **Context Preservation**: Traditional transcription loses semantic meaning and context
+
+This project solves these problems by building an end-to-end RAG (Retrieval-Augmented Generation) pipeline that:
+- Automatically extracts and transcribes audio from YouTube videos
+- Creates semantic embeddings for intelligent search and retrieval
+- Enables natural language questioning of audio content
+- Provides accurate, context-aware answers using state-of-the-art LLMs
+
+The system transforms unstructured audio data into a queryable knowledge base, making YouTube's audio content as searchable as text documents.
 
 ## Features
 
@@ -16,41 +31,76 @@ End-to-end RAG pipeline for processing YouTube audio content and answering quest
 
 ## Quick Start
 
+### Prerequisites
+
+- Python 3.9+ (tested with Python 3.11)
+- [uv](https://docs.astral.sh/uv/) package manager
+- OpenAI API key
+- FFmpeg (for audio processing)
+
 ### 1. Installation
 
 ```bash
 # Clone repository
-git clone <repository-url>
+git clone https://github.com/dataengy/llm-rag-from-yt.git
 cd llm-rag-from-yt
 
-# Install with uv
-uv sync
+# Install uv if not already installed
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Or install ML dependencies for full functionality
+# Install dependencies (ML components included)
 uv sync --extra ml
+
+# Verify installation
+uv run llm-rag-yt --help
 ```
 
 ### 2. Environment Setup
 
 ```bash
+# Copy environment template
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
+
+# Edit .env file and add your OpenAI API key
+# OPENAI_API_KEY=your_actual_api_key_here
 ```
 
-### 3. Run the Pipeline
+### 3. Quick Test (using sample data)
 
 ```bash
-# Process YouTube video
-uv run llm-rag-yt process "https://youtube.com/watch?v=..." --fake-asr
+# Process with fake ASR for quick testing
+uv run llm-rag-yt process "https://youtube.com/watch?v=dQw4w9WgXcQ" --fake-asr
 
-# Ask questions
-uv run llm-rag-yt query "Your question here"
+# Ask questions about the content
+uv run llm-rag-yt query "What is this video about?"
 
-# Start web UI
-uv run llm-rag-yt serve-ui
+# Check system status
+uv run llm-rag-yt status
+```
+
+### 4. Full Pipeline Setup
+
+```bash
+# Process real YouTube video (requires OpenAI API key)
+uv run llm-rag-yt process "https://youtube.com/watch?v=..." --language en
+
+# Start web interface
+uv run llm-rag-yt serve-ui  # UI at http://localhost:7860
 
 # Start API server
-uv run llm-rag-yt serve-api
+uv run llm-rag-yt serve-api  # API at http://localhost:8000
+```
+
+### 5. Docker Setup (Alternative)
+
+```bash
+# Build and start all services
+docker-compose up --build
+
+# Access services:
+# - UI: http://localhost:7860
+# - API: http://localhost:8000
+# - ChromaDB: http://localhost:8001
 ```
 
 ## Architecture
@@ -135,11 +185,45 @@ answer = pipeline.query("Your question here")
 print(answer["answer"])
 ```
 
+## Advanced Features
+
+### Evaluation & Optimization
+
+```bash
+# Run comprehensive evaluation of retrieval and LLM approaches
+uv run llm-rag-yt evaluate
+
+# Generate monitoring dashboard
+uv run llm-rag-yt dashboard
+
+# View ingestion pipeline status
+uv run llm-rag-yt ingestion-status
+```
+
+### Automated Ingestion
+
+```bash
+# Add URLs to ingestion queue
+uv run llm-rag-yt ingest-job "https://youtube.com/watch?v=url1" "https://youtube.com/watch?v=url2"
+
+# Run all pending ingestion jobs
+uv run llm-rag-yt run-ingestion --all
+```
+
+### Advanced Search Features
+
+The system includes several advanced search capabilities:
+
+- **Hybrid Search**: Combines semantic vector search with keyword matching
+- **Query Rewriting**: Automatically generates query variants for better retrieval
+- **Document Re-ranking**: Re-orders results using cross-encoder similarity
+- **Multi-model Evaluation**: Compares different LLM models and prompts
+
 ## Development
 
 ```bash
 # Install development dependencies
-uv sync
+uv sync --extra dev
 
 # Run tests
 make test
@@ -150,6 +234,59 @@ make format
 
 # Run pre-commit checks
 make pre-commit
+
+# Run evaluation suite
+uv run llm-rag-yt evaluate --output-dir ./evaluations
+```
+
+## Testing & Reproducibility
+
+### Quick Test with Sample Data
+
+```bash
+# 1. Install dependencies
+uv sync --extra ml
+
+# 2. Set up environment
+cp .env.example .env
+# Add your OPENAI_API_KEY to .env
+
+# 3. Test with fake ASR (no API key required for processing)
+uv run llm-rag-yt process "https://youtube.com/watch?v=dQw4w9WgXcQ" --fake-asr
+
+# 4. Query the system (requires OpenAI API key)
+uv run llm-rag-yt query "What is this video about?"
+
+# 5. Start web interface
+uv run llm-rag-yt serve-ui
+```
+
+### Full Test with Real Data
+
+The repository includes sample Russian audio content for testing:
+
+```bash
+# Process existing sample data
+uv run llm-rag-yt process "https://youtube.com/watch?v=sample" --language ru
+
+# Test various query types
+uv run llm-rag-yt query "О чем говорят в видео?"
+uv run llm-rag-yt query "Кто участвует в разговоре?"
+uv run llm-rag-yt query "Какие основные темы обсуждаются?"
+```
+
+### Comprehensive System Test
+
+```bash
+# Run full system functionality test
+python scripts/test_full_pipeline.py
+
+# This test verifies:
+# - Pipeline initialization
+# - Evaluation systems (retrieval + LLM)
+# - Monitoring and feedback collection
+# - Automated ingestion pipeline
+# - Advanced search features (hybrid, reranking, query rewriting)
 ```
 
 ## Configuration

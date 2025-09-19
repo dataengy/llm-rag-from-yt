@@ -20,7 +20,7 @@ except ImportError:
         def catch(self, func):
             return func
     log = FallbackLogger()
-from utils import setup_logger, load_transcription_text, simple_search, generate_simple_answer, create_rag_metadata
+from llm_rag_yt.utils import setup_logger, load_transcription_text, simple_search, generate_simple_answer, create_rag_metadata
 from user_testing.config import get_demo_config
 
 

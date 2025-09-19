@@ -6,7 +6,7 @@ authors = [
     {name = "DataEngy", email = "noreply@dataengy.com"}
 ]
 # readme = "docs/README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.13"
 dependencies = [
     "openai>=1.0.0",
     "python-dotenv",
@@ -22,6 +22,8 @@ dependencies = [
     "typer",
     "rich",
     "bash",
+    "plotly",
+    "pandas",
 ]
 
 [project.optional-dependencies]
@@ -39,6 +41,7 @@ ml = [
     "torch",
     "torchvision", 
     "torchaudio",
+    "scikit-learn",
 ]
 
 [build-system]

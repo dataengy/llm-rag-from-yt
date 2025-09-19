@@ -198,5 +198,194 @@ def serve_ui(
         sys.exit(1)
 
 
+@app.command()
+def evaluate(
+    output_dir: Optional[Path] = typer.Option(
+        None, "--output-dir", help="Output directory for evaluation results"
+    ),
+    run_retrieval: bool = typer.Option(True, "--retrieval", help="Run retrieval evaluation"),
+    run_llm: bool = typer.Option(True, "--llm", help="Run LLM evaluation"),
+):
+    """Run evaluation suite for retrieval and LLM approaches."""
+    try:
+        pipeline = RAGPipeline()
+        
+        if output_dir is None:
+            output_dir = pipeline.config.artifacts_dir / "evaluations"
+        
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        console.print("🔬 Starting evaluation suite...")
+        
+        if run_retrieval:
+            console.print("📊 Evaluating retrieval approaches...")
+            from ..evaluation.retrieval_evaluator import RetrievalEvaluator
+            
+            retrieval_evaluator = RetrievalEvaluator(pipeline.vector_store, pipeline.encoder)
+            retrieval_results = retrieval_evaluator.run_evaluation_suite(output_dir)
+            
+            best_approach = retrieval_results["summary"]["best_approach"]
+            best_k = retrieval_results["summary"]["best_k"]
+            console.print(f"✅ Best retrieval: {best_approach} with k={best_k}")
+        
+        if run_llm:
+            console.print("🤖 Evaluating LLM approaches...")
+            from ..evaluation.llm_evaluator import LLMEvaluator
+            
+            llm_evaluator = LLMEvaluator(pipeline.vector_store, pipeline.encoder)
+            llm_results = llm_evaluator.run_evaluation_suite(output_dir)
+            
+            best_model = llm_results["summary"]["best_model"]
+            best_prompt = llm_results["summary"]["best_prompt"]
+            console.print(f"✅ Best LLM: {best_model} with {best_prompt}")
+        
+        console.print(f"📋 Evaluation results saved to: {output_dir}")
+        
+    except Exception as e:
+        logger.error(f"Evaluation failed: {e}")
+        console.print(f"❌ Error: {e}", style="red")
+        sys.exit(1)
+
+
+@app.command()
+def ingest_job(
+    urls: list[str] = typer.Argument(..., help="YouTube URLs to add to ingestion queue"),
+):
+    """Add URLs to automated ingestion queue."""
+    try:
+        from ..ingestion.automated_pipeline import AutomatedIngestionPipeline
+        
+        pipeline = AutomatedIngestionPipeline()
+        job_id = pipeline.add_job(urls)
+        
+        console.print(f"✅ Added ingestion job: {job_id}")
+        console.print(f"📝 URLs queued: {len(urls)}")
+        
+    except Exception as e:
+        logger.error(f"Failed to add ingestion job: {e}")
+        console.print(f"❌ Error: {e}", style="red")
+        sys.exit(1)
+
+
+@app.command()
+def run_ingestion(
+    job_id: Optional[str] = typer.Option(None, "--job-id", help="Specific job ID to run"),
+    all_pending: bool = typer.Option(False, "--all", help="Run all pending jobs"),
+):
+    """Run ingestion jobs."""
+    try:
+        from ..ingestion.automated_pipeline import AutomatedIngestionPipeline
+        
+        pipeline = AutomatedIngestionPipeline()
+        
+        if job_id:
+            console.print(f"🔄 Running job: {job_id}")
+            result = pipeline.run_job(job_id)
+            console.print(f"✅ Job status: {result['status']}")
+            
+        elif all_pending:
+            console.print("🔄 Running all pending jobs...")
+            results = pipeline.run_pending_jobs()
+            console.print(f"✅ Processed {results['processed']} jobs")
+            
+        else:
+            console.print("❌ Specify --job-id or --all", style="red")
+            sys.exit(1)
+        
+    except Exception as e:
+        logger.error(f"Ingestion failed: {e}")
+        console.print(f"❌ Error: {e}", style="red")
+        sys.exit(1)
+
+
+@app.command()
+def ingestion_status(
+    status_filter: Optional[str] = typer.Option(None, "--status", help="Filter by status"),
+):
+    """Show ingestion pipeline status."""
+    try:
+        from ..ingestion.automated_pipeline import AutomatedIngestionPipeline
+        
+        pipeline = AutomatedIngestionPipeline()
+        stats = pipeline.get_pipeline_stats()
+        jobs = pipeline.list_jobs(status_filter)
+        
+        # Stats table
+        stats_table = Table(title="Ingestion Pipeline Stats")
+        stats_table.add_column("Metric", style="cyan")
+        stats_table.add_column("Value", style="green")
+        
+        stats_table.add_row("Total Jobs", str(stats["total_jobs"]))
+        stats_table.add_row("Completed", str(stats["completed_jobs"]))
+        stats_table.add_row("Failed", str(stats["failed_jobs"]))
+        stats_table.add_row("Pending", str(stats["pending_jobs"]))
+        stats_table.add_row("Success Rate", f"{stats['success_rate']:.2%}")
+        stats_table.add_row("URLs Processed", str(stats["total_urls_processed"]))
+        stats_table.add_row("Collection Size", str(stats["collection_size"]))
+        
+        console.print(stats_table)
+        
+        # Jobs table
+        if jobs:
+            jobs_table = Table(title=f"Jobs {f'({status_filter})' if status_filter else ''}")
+            jobs_table.add_column("Job ID", style="cyan")
+            jobs_table.add_column("Status", style="green")
+            jobs_table.add_column("URLs", style="yellow")
+            jobs_table.add_column("Created", style="blue")
+            
+            for job in jobs[-10:]:  # Show last 10 jobs
+                created = job["created_at"][:16].replace("T", " ")
+                jobs_table.add_row(
+                    job["id"],
+                    job["status"],
+                    str(len(job["urls"])),
+                    created
+                )
+            
+            console.print(jobs_table)
+        
+    except Exception as e:
+        logger.error(f"Status check failed: {e}")
+        console.print(f"❌ Error: {e}", style="red")
+        sys.exit(1)
+
+
+@app.command()
+def dashboard(
+    output_dir: Optional[Path] = typer.Option(None, "--output", help="Output directory for dashboard"),
+    open_browser: bool = typer.Option(True, "--open", help="Open dashboard in browser"),
+):
+    """Generate monitoring dashboard."""
+    try:
+        pipeline = RAGPipeline()
+        
+        if output_dir is None:
+            output_dir = pipeline.config.artifacts_dir / "monitoring"
+        
+        output_dir = Path(output_dir)
+        
+        from ..monitoring.dashboard import MonitoringDashboard
+        from ..monitoring.feedback_collector import FeedbackCollector
+        
+        feedback_db = pipeline.config.artifacts_dir / "feedback.db"
+        dashboard = MonitoringDashboard(feedback_db)
+        
+        dashboard_path = output_dir / "dashboard.html"
+        result_path = dashboard.generate_dashboard_html(dashboard_path)
+        
+        console.print(f"📊 Dashboard generated: {result_path}")
+        
+        if open_browser:
+            import webbrowser
+            webbrowser.open(f"file://{dashboard_path.absolute()}")
+            console.print("🌐 Opened dashboard in browser")
+        
+    except Exception as e:
+        logger.error(f"Dashboard generation failed: {e}")
+        console.print(f"❌ Error: {e}", style="red")
+        sys.exit(1)
+
+
 if __name__ == "__main__":
     app()
