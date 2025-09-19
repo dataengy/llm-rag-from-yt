@@ -4,17 +4,22 @@
 import sys
 from pathlib import Path
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, print_session_header, print_section_header
+)
+
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('simple_rag_demo_test')
 
 def test_rag_demo():
     """Test the RAG demo without interactive session."""
     
+    print_session_header("TESTING RAG DEMO COMPONENTS")
+    
     # Import the main functions
     from simple_rag_demo import create_simple_rag_qa, simple_search, generate_simple_answer
-    
-    print("🧪 TESTING RAG DEMO COMPONENTS")
-    print("=" * 40)
     
     # Create RAG data
     print("1. Creating RAG data...")
@@ -32,9 +37,10 @@ def test_rag_demo():
         "Как он зарабатывает деньги?"
     ]
     
-    print("\n2. Testing Q&A...")
+    print_section_header("Testing Q&A")
     for i, question in enumerate(test_questions, 1):
-        print(f"\n{i}. Вопрос: {question}")
+        print(f"
+{i}. Вопрос: {question}")
         
         # Search and answer
         relevant_chunks = simple_search(question, rag_data)
@@ -43,7 +49,8 @@ def test_rag_demo():
         print(f"   Ответ: {answer[:100]}...")
         print(f"   Найдено фрагментов: {len(relevant_chunks)}")
     
-    print("\n✅ All tests completed successfully!")
+    print("
+✅ All tests completed successfully!")
     return True
 
 if __name__ == "__main__":

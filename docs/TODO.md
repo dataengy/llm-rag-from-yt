@@ -1,7 +1,7 @@
 # LLM RAG YouTube Audio Processing Project
 
 ## Achive next Evaluation Criteria with maximum points
-- choose next tools for stack: Dagster, 
+- choose next tools for stack: Dagster, FastAPI
 * Problem description
     * 0 points: The problem is not described
     * 1 point: The problem is described but briefly or unclearly

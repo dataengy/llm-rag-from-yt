@@ -11,79 +11,15 @@ from datetime import datetime
 from loguru import logger as log
 from bash import bash
 
-# Add src to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
+# Import common utilities
+from utils import (
+    setup_python_path, setup_logging, load_config, load_transcription_text,
+    create_rag_metadata, print_session_header, print_section_header, print_test_results
+)
 
-# Setup detailed logging
-log_dir = Path(__file__).parent.parent.parent / "logs"
-log_dir.mkdir(exist_ok=True)
-
-log_file = log_dir / f"persistent_rag_demo_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
-
-# Configure loguru for detailed logging
-log.remove()  # Remove default handler
-log.add(sys.stderr, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
-log.add(log_file, level="DEBUG", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level} | {name}:{function}:{line} | {message}")
-
-log.info("=== PERSISTENT RAG DEMO SESSION STARTED ===")
-log.info(f"Log file: {log_file}")
-log.info(f"Working directory: {Path.cwd()}")
-
-def load_config() -> dict:
-    """Load configuration from config.yml."""
-    config_file = Path("config.yml")
-    if not config_file.exists():
-        log.error(f"Config file not found: {config_file}")
-        raise FileNotFoundError(f"Config file not found: {config_file}")
-    
-    with open(config_file, 'r', encoding='utf-8') as f:
-        config = yaml.safe_load(f)
-    
-    log.info("Configuration loaded successfully")
-    log.debug(f"Config: {config}")
-    return config
-
-def load_transcription_text(config: dict) -> str:
-    """Load the transcription text from configured file."""
-    log.debug("Starting transcription loading process")
-    
-    transcript_file = Path(config['data']['transcript_file'])
-    log.info(f"Using transcript file: {transcript_file}")
-    
-    if not transcript_file.exists():
-        log.error(f"Transcript file not found: {transcript_file}")
-        raise FileNotFoundError(f"❌ Transcript file not found: {transcript_file}")
-
-    try:
-        log.debug(f"Reading transcript file: {transcript_file}")
-        with transcript_file.open("r", encoding="utf-8") as f:
-            content = f.read()
-        
-        log.debug(f"Raw content length: {len(content)} characters")
-        
-        # Extract just the text from timestamped segments
-        lines = content.split('\n')
-        text_segments = []
-        
-        log.debug(f"Processing {len(lines)} lines")
-        for i, line in enumerate(lines):
-            line = line.strip()
-            if line.startswith("[") and "]" in line:
-                # Extract text after timestamp
-                text_part = line.split("]", 1)[1].strip()
-                if text_part:
-                    text_segments.append(text_part)
-                    log.debug(f"Line {i}: extracted segment '{text_part[:50]}...'")
-        
-        full_text = " ".join(text_segments)
-        log.info(f"Successfully loaded transcription: {len(text_segments)} segments, {len(full_text)} characters")
-        print(f"✅ Loaded transcription: {len(text_segments)} segments, {len(full_text)} characters")
-        return full_text
-        
-    except Exception as e:
-        log.error(f"Failed to load transcription: {e}")
-        print(f"❌ Failed to load transcription: {e}")
-        return ""
+# Setup Python path and logging
+setup_python_path()
+log_file = setup_logging('persistent_rag_demo')
 
 def create_persistent_rag_system(config: dict):
     """Create a persistent RAG system using ChromaDB."""
@@ -93,7 +29,8 @@ def create_persistent_rag_system(config: dict):
     
     # Load transcription
     log.debug("Loading transcription text")
-    transcript_text = load_transcription_text(config)
+    transcript_file = Path(config['data']['transcript_file'])
+    transcript_text = load_transcription_text(transcript_file)
     if not transcript_text:
         log.error("No transcript text loaded, aborting RAG creation")
         return None
@@ -198,18 +135,22 @@ def create_persistent_rag_system(config: dict):
             "encoder": encoder,
             "chunks": chunks,
             "full_text": transcript_text,
-            "metadata": {
-                "source": config['metadata']['source'],
-                "title": config['metadata']['title'],
-                "language": config['metadata']['language'],
-                "chunk_count": len(chunks),
-                "created_at": datetime.now().isoformat(),
-                "transcript_length": len(transcript_text),
-                "embedding_model": embedding_model,
-                "chroma_path": str(chroma_path),
-                "collection_name": collection_name
-            }
+            "metadata": create_rag_metadata(
+                source=config['metadata']['source'],
+                title=config['metadata']['title'],
+                language=config['metadata']['language'],
+                chunk_count=len(chunks),
+                transcript_length=len(transcript_text),
+                method="persistent_chromadb"
+            )
         }
+        
+        # Add additional metadata
+        rag_system['metadata'].update({
+            "embedding_model": embedding_model,
+            "chroma_path": str(chroma_path),
+            "collection_name": collection_name
+        })
         
         log.info("Persistent RAG system created successfully")
         log.debug(f"RAG system metadata: {rag_system['metadata']}")
@@ -304,7 +245,8 @@ def interactive_persistent_qa(rag_system: Dict[str, Any], config: dict):
     log.info("Starting interactive persistent Q&A session")
     log.debug(f"RAG system contains vector store with {rag_system['metadata']['chunk_count']} chunks")
     
-    print("\n" + "="*70)
+    print("
+" + "="*70)
     print("🤖 PERSISTENT RAG Q&A - СЕМАНТИЧЕСКИЙ ПОИСК С CHROMADB")
     print("="*70)
     print(f"📹 Видео: {rag_system['metadata']['title']}")
@@ -320,7 +262,8 @@ def interactive_persistent_qa(rag_system: Dict[str, Any], config: dict):
     while True:
         try:
             log.debug("Waiting for user input...")
-            question = input("\n🤔 Ваш вопрос: ").strip()
+            question = input("
+🤔 Ваш вопрос: ").strip()
             
             if question.lower() in ['quit', 'exit', 'выход', 'q']:
                 log.info("User requested to quit interactive session")
@@ -333,7 +276,8 @@ def interactive_persistent_qa(rag_system: Dict[str, Any], config: dict):
                 continue
             
             log.info(f"Processing user question: '{question}'")
-            print(f"\n🔍 Семантический поиск для: '{question}'")
+            print(f"
+🔍 Семантический поиск для: '{question}'")
             
             # Perform semantic search
             log.debug("Starting semantic search")
@@ -345,13 +289,15 @@ def interactive_persistent_qa(rag_system: Dict[str, Any], config: dict):
             
             log.info(f"Generated answer for question '{question}': '{answer[:50]}...'")
             
-            print(f"\n💬 ОТВЕТ:")
+            print(f"
+💬 ОТВЕТ:")
             print("-" * 50)
             print(answer)
             
             if search_results:
                 log.debug(f"Displaying {len(search_results)} search results")
-                print(f"\n📚 СЕМАНТИЧЕСКИ ПОХОЖИЕ ФРАГМЕНТЫ ({len(search_results)}):")
+                print(f"
+📚 СЕМАНТИЧЕСКИ ПОХОЖИЕ ФРАГМЕНТЫ ({len(search_results)}):")
                 print("-" * 50)
                 for i, result in enumerate(search_results, 1):
                     distance = result.get('distance', 0.0)
@@ -362,17 +308,20 @@ def interactive_persistent_qa(rag_system: Dict[str, Any], config: dict):
             
         except KeyboardInterrupt:
             log.info("Interactive session interrupted by user (Ctrl+C)")
-            print("\n\n👋 Сессия прервана пользователем")
+            print("
+
+👋 Сессия прервана пользователем")
             break
         except Exception as e:
             log.error(f"Error in interactive session: {e}")
-            print(f"\n❌ Ошибка: {e}")
+            print(f"
+❌ Ошибка: {e}")
 
 def test_persistent_rag(rag_system: Dict[str, Any], config: dict):
     """Test the persistent RAG system with sample questions."""
     
     log.info("Starting persistent RAG system test")
-    print("\n🧪 ТЕСТИРОВАНИЕ СЕМАНТИЧЕСКОГО ПОИСКА:")
+    print_section_header("ТЕСТИРОВАНИЕ СЕМАНТИЧЕСКОГО ПОИСКА")
     
     test_questions = [
         "Сколько зарабатывает герой видео?",
@@ -386,7 +335,8 @@ def test_persistent_rag(rag_system: Dict[str, Any], config: dict):
     
     for i, question in enumerate(test_questions, 1):
         log.info(f"Testing question {i}: '{question}'")
-        print(f"\n{i}. Вопрос: {question}")
+        print(f"
+{i}. Вопрос: {question}")
         
         # Perform semantic search
         search_results = semantic_search(question, rag_system, top_k=max_results)
@@ -400,7 +350,8 @@ def test_persistent_rag(rag_system: Dict[str, Any], config: dict):
             print(f"   🎯 Лучшая схожесть: {best_similarity:.1f}%")
     
     log.info("Persistent RAG system test completed")
-    print("\n✅ Все тесты завершены успешно!")
+    print("
+✅ Все тесты завершены успешно!")
 
 @log.catch
 def main():
@@ -410,8 +361,7 @@ def main():
     log.info(f"Current working directory: {Path.cwd()}")
     log.info(f"Python path: {sys.path[:3]}...")  # First 3 entries
     
-    print("🚀 PERSISTENT RAG DEMO - CHROMADB ВЕКТОРНОЕ ХРАНИЛИЩЕ")
-    print("="*60)
+    print_session_header("PERSISTENT RAG DEMO - CHROMADB ВЕКТОРНОЕ ХРАНИЛИЩЕ")
     
     try:
         # Load configuration
