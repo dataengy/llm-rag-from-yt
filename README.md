@@ -183,6 +183,16 @@ pipeline = RAGPipeline(config)
 - **Testing**: pytest
 - **Code Quality**: ruff
 
+## Documentation
+
+- [API Documentation](docs/API.md)
+- [TODO](docs/TODO.md)
+- [Test Report](docs/TEST-REPORT.md)
+- [Prompts Log](docs/.PROMPTS-LOG.md)
+- [Claude Status](docs/CLAUDE-curr-status.md)
+- [Claude MD](docs/CLAUDE.md)
+- [Claude Local](docs/CLAUDE.local.md)
+
 ## License
 
 MIT License
