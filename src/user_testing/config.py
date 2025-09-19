@@ -10,8 +10,8 @@ class RAGDemoConfig:
     """Configuration for RAG demo."""
     
     # File paths (relative to project root)
-    local_transcript_path: Path = Path("data/audio/transcript.txt")
-    main_transcript_path: Path = Path("data/audio/В месяц ты зарабатываешь больше 1млн рублей？ Звезда ＂Реутов ТВ＂ у Дудя.real_transcript.txt")
+    local_transcript_path: Path = Path("../../data/audio/transcript.txt")
+    main_transcript_path: Path = Path("../../data/audio/В месяц ты зарабатываешь больше 1млн рублей？ Звезда ＂Реутов ТВ＂ у Дудя.real_transcript.txt")
     
     # Video metadata
     video_title: str = "В месяц ты зарабатываешь больше 1млн рублей？ Звезда ＂Реутов ТВ＂ у Дудя"

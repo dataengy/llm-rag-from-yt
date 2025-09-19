@@ -5,10 +5,11 @@ from pathlib import Path
 
 try:
     import torch
-
     TORCH_AVAILABLE = True
+    CUDA_AVAILABLE = torch.cuda.is_available() if hasattr(torch, 'cuda') else False
 except ImportError:
     TORCH_AVAILABLE = False
+    CUDA_AVAILABLE = False
 
 
 @dataclass
@@ -26,10 +27,8 @@ class Config:
     use_vad: bool = False
     segment_sec: int = 60
     beam_size: int = 5
-    device: str = "cuda" if TORCH_AVAILABLE and torch.cuda.is_available() else "cpu"
-    whisper_precision: str = (
-        "float16" if (TORCH_AVAILABLE and torch.cuda.is_available()) else "int8"
-    )
+    device: str = "cuda" if CUDA_AVAILABLE else "cpu"
+    whisper_precision: str = "float16" if CUDA_AVAILABLE else "int8"
     chunk_size: int = 250
     chunk_overlap: int = 50
     max_tokens: int = 256

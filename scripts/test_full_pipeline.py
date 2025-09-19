@@ -158,6 +158,7 @@ def main():
     print()
     
     print("🎉 All tests completed!")
+
     print("\n📋 System Status:")
     print("✅ Problem description: Enhanced with clear problem statement")
     print("✅ Retrieval flow: Uses both vector DB and LLM")

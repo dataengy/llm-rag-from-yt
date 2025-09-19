@@ -3,7 +3,7 @@ name = "llm-rag-from-yt"
 version = "0.1.0"
 description = "LLM RAG system for YouTube audio content processing"
 authors = [
-    {name = "DataEngy", email = "noreply@dataengy.com"}
+    {name = "DataEngy", email = "data.engy@gmail.com"}
 ]
 # readme = "docs/README.md"
 requires-python = ">=3.9,<3.13"
@@ -38,9 +38,6 @@ dev = [
 ml = [
     "faster-whisper",
     "sentence-transformers",
-    "torch",
-    "torchvision", 
-    "torchaudio",
     "scikit-learn",
 ]
 

@@ -289,6 +289,26 @@ python scripts/test_full_pipeline.py
 # - Advanced search features (hybrid, reranking, query rewriting)
 ```
 
+### Interactive Philosophical Content Testing
+
+```bash
+# Test with real Russian philosophical podcast content
+python scripts/test_philosophical_rag.py
+
+# Features:
+# - Processes real MP3 file: "Философская беседа | Юрий Вафин | подкаст.mp3"
+# - 16 predefined philosophical questions in Russian
+# - Interactive user input for custom questions
+# - Advanced search methods (standard, hybrid, query rewriting)
+# - Real-time feedback collection and performance metrics
+# - Persistent ChromaDB storage validation
+
+# Example commands in interactive mode:
+# О чем говорит Юрий Вафин в подкасте?
+# hybrid: Какие философские концепции обсуждаются?
+# rewrite: Что можно узнать из этой беседы?
+```
+
 ## Configuration
 
 The system uses a configuration class that can be customized:

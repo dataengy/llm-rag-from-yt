@@ -31,7 +31,10 @@
       "Bash(/Users/nk.myg/github/@dataengy/llm-rag-from-yt/.venv/bin/pip list)",
       "Bash(/Users/nk.myg/github/@dataengy/llm-rag-from-yt/.venv/bin/python -c \"import sentence_transformers; print('sentence-transformers available')\")",
       "Bash(/Users/nk.myg/github/@dataengy/llm-rag-from-yt/.venv/bin/python simple_chroma_demo.py)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(chmod:*)",
+      "Bash(uv:*)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

@@ -1,10 +1,14 @@
 """Query rewriting for improved retrieval."""
 
 import re
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 from loguru import logger
 from openai import OpenAI
+
+if TYPE_CHECKING:
+    from ..storage.chroma_store import ChromaVectorStore
+    from ..embeddings.encoder import EmbeddingEncoder
 
 
 class QueryRewriter:
@@ -197,8 +201,8 @@ class QueryRewriter:
 
     def search_with_rewritten_queries(
         self,
-        vector_store: ChromaVectorStore,
-        encoder: EmbeddingEncoder,
+        vector_store: "ChromaVectorStore",
+        encoder: "EmbeddingEncoder", 
         original_query: str,
         top_k: int = 10,
         fusion_method: str = "rrf"  # reciprocal rank fusion
